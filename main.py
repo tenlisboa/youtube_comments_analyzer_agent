@@ -1,68 +1,114 @@
-import dotenv
-import os
-from langchain_openai import ChatOpenAI
-from googleapiclient.discovery import build 
-from commentary.commentary_extractor import CommentExtractor, CommentExtractorResponse
-from langgraph.graph import MessagesState
-from langchain_core.messages import SystemMessage, HumanMessage
-from langgraph.graph import START, StateGraph
-from langgraph.prebuilt import tools_condition, ToolNode
-from IPython.display import Image, display
+#!/usr/bin/env python3
+"""
+YouTube Comments Feeling Analyzer
 
+This is the main entry point for the YouTube Comments Feeling Analyzer application.
+It can be run in two modes:
+1. As a command-line tool to analyze a specific video
+2. As a web server to provide an API for analyzing videos
+
+Usage:
+    # Run as a command-line tool
+    python main.py --video https://www.youtube.com/watch?v=VIDEO_ID
+    
+    # Run as a web server
+    python main.py --server [--port PORT]
+"""
+
+import argparse
+import os
+import sys
+import dotenv
+import uvicorn
+
+from youtube_analyzer.analyzer.sentiment_analyzer import CommentAnalyzer
+from youtube_analyzer.api.app import create_app
+
+# Load environment variables
 dotenv.load_dotenv()
 
-youtube = build('youtube', 'v3', developerKey=os.getenv("YOUTUBE_API_KEY"))
-llm = ChatOpenAI(model='gpt-4o')
 
-def comentaries(video_url: str, next_page_token: str | None = None) -> CommentExtractorResponse:
+def analyze_video(video_url: str) -> None:
     """
-    Extracts the comments from a YouTube video given its URL.
-
+    Analyze a YouTube video and print the results.
+    
     Args:
-        video_url: (str) The URL of the YouTube video.
-        next_page_token: (str | None) The token for pagination, if provided search the next commentaries
-
-    Returns:
-        CommentExtractorResponse: A dict containing the comments and next_page_token (can be None).
+        video_url: URL of the YouTube video to analyze.
     """
+    try:
+        analyzer = CommentAnalyzer()
+        result = analyzer.analyze(video_url)
+        
+        print("\n=== Analysis Results ===\n")
+        for message in result['messages']:
+            message.pretty_print()
+            print("\n" + "-"*50 + "\n")
+    except Exception as e:
+        print(f"Error analyzing video: {e}")
+        sys.exit(1)
 
-    extractor = CommentExtractor(
-        video_url,
-        youtube=youtube
+
+def run_server(port: int = 8000) -> None:
+    """
+    Run the API server.
+    
+    Args:
+        port: Port to run the server on.
+    """
+    try:
+        uvicorn.run(
+            create_app(), 
+            host="0.0.0.0", 
+            port=port,
+            factory=True
+        )
+    except Exception as e:
+        print(f"Error starting server: {e}")
+        sys.exit(1)
+
+
+def main() -> None:
+    """Main entry point for the application."""
+    parser = argparse.ArgumentParser(description="YouTube Comments Feeling Analyzer")
+    
+    # Create mutually exclusive group for the different modes
+    mode_group = parser.add_mutually_exclusive_group(required=True)
+    mode_group.add_argument(
+        "--video", 
+        type=str, 
+        help="URL of the YouTube video to analyze"
     )
-    response = extractor.extract(next_page_token)
+    mode_group.add_argument(
+        "--server", 
+        action="store_true", 
+        help="Run as a web server"
+    )
+    
+    # Additional arguments
+    parser.add_argument(
+        "--port", 
+        type=int, 
+        default=8000, 
+        help="Port to run the server on (default: 8000)"
+    )
+    
+    args = parser.parse_args()
+    
+    # Check for required environment variables
+    if not os.getenv("YOUTUBE_API_KEY"):
+        print("Error: YOUTUBE_API_KEY environment variable is not set")
+        sys.exit(1)
+    
+    if not os.getenv("OPENAI_API_KEY"):
+        print("Error: OPENAI_API_KEY environment variable is not set")
+        sys.exit(1)
+    
+    # Run in the appropriate mode
+    if args.video:
+        analyze_video(args.video)
+    elif args.server:
+        run_server(args.port)
 
-    return response
 
-tools = [comentaries]
-chat = llm.bind_tools(tools)
-
-SYSTEM = SystemMessage(content="You are an Digital Marketeer tasked with the activity to extract the feeling of a youtube video commentaries. If you need more comentaries you are an Digital Marketeer")
-
-def assistant(state: MessagesState):
-    return {"messages": [
-        chat.invoke([SYSTEM] + state["messages"])
-    ]}
-
-builder = StateGraph(MessagesState)
-
-builder.add_node("assistant", assistant)
-builder.add_node("tools", ToolNode(tools))
-
-builder.add_edge(START, "assistant")
-builder.add_conditional_edges(
-    "assistant",
-    tools_condition
-)
-
-builder.add_edge("tools", "assistant")
-
-graph = builder.compile()
-
-# display(Image(graph.get_graph(xray=True).draw_mermaid_png()))
-
-messages = [HumanMessage(content="Poderia analizar os comentários desse vídeo: https://www.youtube.com/watch?v=ML8h9pgWyXw")]
-messages = graph.invoke({"messages": messages})
-
-for m in messages['messages']:
-    m.pretty_print()
+if __name__ == "__main__":
+    main()

@@ -2,7 +2,7 @@ import dotenv
 import os
 from langchain_openai import ChatOpenAI
 from googleapiclient.discovery import build 
-from comentary_extractor import CommentExtractor, CommentExtractorResponse
+from commentary.commentary_extractor import CommentExtractor, CommentExtractorResponse
 from langgraph.graph import MessagesState
 from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.graph import START, StateGraph
@@ -11,6 +11,7 @@ from IPython.display import Image, display
 
 dotenv.load_dotenv()
 
+youtube = build('youtube', 'v3', developerKey=os.getenv("YOUTUBE_API_KEY"))
 llm = ChatOpenAI(model='gpt-4o')
 
 def comentaries(video_url: str, next_page_token: str | None = None) -> CommentExtractorResponse:
@@ -22,10 +23,9 @@ def comentaries(video_url: str, next_page_token: str | None = None) -> CommentEx
         next_page_token: (str | None) The token for pagination, if provided search the next commentaries
 
     Returns:
-        ComentExtractorResponse: A dict containing the comments and next_page_token (can be None).
+        CommentExtractorResponse: A dict containing the comments and next_page_token (can be None).
     """
 
-    youtube = build('youtube', 'v3', developerKey=os.getenv("YOUTUBE_API_KEY"))
     extractor = CommentExtractor(
         video_url,
         youtube=youtube

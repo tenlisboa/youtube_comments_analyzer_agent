@@ -15,7 +15,12 @@ class CommentExtractorResponse:
     next_page_token: Optional[str] = None
     
     def to_dict(self) -> Dict[str, Any]:
-        """Convert the response to a dictionary."""
+        """
+        Convert the response to a dictionary.
+        
+        Returns:
+            Dict[str, Any]
+        """
         return {
             "comments": [comment.to_dict() for comment in self.comments],
             "next_page_token": self.next_page_token
@@ -30,7 +35,12 @@ class AnalysisResult:
     comment_count: int
     
     def to_dict(self) -> Dict[str, Any]:
-        """Convert the analysis result to a dictionary."""
+        """
+        Convert the analysis result to a dictionary.
+        
+        Returns:
+            Dict[str, Any]
+        """
         return {
             "insights": self.insights,
             "video_id": self.video_id,

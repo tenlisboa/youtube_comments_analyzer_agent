@@ -23,14 +23,24 @@ class Comment:
     
     @property
     def parsed_date(self) -> Optional[datetime]:
-        """Parse the date string into a datetime object."""
+        """
+        Parse the date string into a datetime object.
+        
+        Returns:
+            Optional[datetime]
+        """
         try:
             return datetime.fromisoformat(self.date.replace('Z', '+00:00'))
         except (ValueError, TypeError):
             return None
     
     def to_dict(self) -> dict:
-        """Convert the comment to a dictionary."""
+        """
+        Convert the comment to a dictionary.
+        
+        Returns:
+            dict
+        """
         return {
             "id": self.id,
             "text": self.text,

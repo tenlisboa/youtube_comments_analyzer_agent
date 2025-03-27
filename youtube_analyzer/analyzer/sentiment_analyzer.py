@@ -33,16 +33,16 @@ class CommentAnalyzer:
         # Set up the analysis graph
         self.graph = self._build_analysis_graph()
     
-    def _get_comments_tool(self, video_url: str, next_page_token: Optional[str] = None) -> CommentExtractorResponse:
+    @staticmethod
+    def _get_comments_tool(video_url: str, next_page_token: Optional[str] = None) -> CommentExtractorResponse:
         """
         Tool function to extract comments from a YouTube video.
         
         Args:
-        video_url: (str) The URL of the YouTube video.
-        next_page_token: (str | None) The token for pagination, if provided search the next commentaries
+            video_url: The URL of the YouTube video.
+            next_page_token: The token for pagination, if provided search the next commentaries.
             
-        Returns:
-            CommentExtractorResponse: object containing the comments and next_page_token.
+
         """
         extractor = CommentExtractor(video_url)
         return extractor.extract(next_page_token)
@@ -51,11 +51,10 @@ class CommentAnalyzer:
         """
         Build the LangGraph for comment analysis.
         
-        Returns:
-            StateGraph: for analysis.
+
         """
         # Create tool for the LLM
-        tools = [self._get_comments_tool]
+        tools = [CommentAnalyzer._get_comments_tool]
         chat = self.llm.bind_tools(tools)
         
         # Define the assistant node function
@@ -87,8 +86,7 @@ class CommentAnalyzer:
         Args:
             video_url: URL of the YouTube video to analyze.
             
-        Returns:
-            Analysis result containing LLM messages.
+
         """
         messages = [HumanMessage(content=f"Please analyze the comments of this video: {video_url}")]
         return self.graph.invoke({"messages": messages})
@@ -100,8 +98,7 @@ class CommentAnalyzer:
         Args:
             video_url: URL of the YouTube video to analyze.
             
-        Returns:
-            AnalysisResult containing insights and metadata.
+
         """
         # Extract video ID for reference
         video_id = CommentExtractor.extract_video_id(video_url)

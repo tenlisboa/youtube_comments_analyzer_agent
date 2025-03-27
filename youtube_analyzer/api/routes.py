@@ -34,10 +34,10 @@ async def analyze_video(request: VideoAnalysisRequest) -> VideoAnalysisResponse:
         request: VideoAnalysisRequest containing the video URL.
         
     Returns:
-        VideoAnalysisResponse with analysis insights.
+        VideoAnalysisResponse
         
     Raises:
-        HTTPException: If analysis fails.
+        HTTPException If analysis fails.
     """
     try:
         analyzer = CommentAnalyzer()

@@ -12,7 +12,7 @@ def create_app() -> FastAPI:
     Create and configure the FastAPI application.
     
     Returns:
-        Configured FastAPI application.
+        FastAPI
     """
     app = FastAPI(
         title="YouTube Comments Feeling Analyzer",

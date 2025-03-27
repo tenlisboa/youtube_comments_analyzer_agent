@@ -34,6 +34,9 @@ def analyze_video(video_url: str) -> None:
     
     Args:
         video_url: URL of the YouTube video to analyze.
+        
+    Returns:
+        None
     """
     try:
         analyzer = CommentAnalyzer()
@@ -54,6 +57,9 @@ def run_server(port: int = 8000) -> None:
     
     Args:
         port: Port to run the server on.
+        
+    Returns:
+        None
     """
     try:
         uvicorn.run(
@@ -68,7 +74,12 @@ def run_server(port: int = 8000) -> None:
 
 
 def main() -> None:
-    """Main entry point for the application."""
+    """
+    Main entry point for the application.
+    
+    Returns:
+        None
+    """
     parser = argparse.ArgumentParser(description="YouTube Comments Feeling Analyzer")
     
     # Create mutually exclusive group for the different modes

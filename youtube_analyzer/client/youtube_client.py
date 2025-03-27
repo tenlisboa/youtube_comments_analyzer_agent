@@ -27,7 +27,7 @@ class YouTubeClient:
             api_key: YouTube API key. If None, will try to get from environment.
             
         Raises:
-            ValueError: If the YouTube API key is not provided and not found in environment.
+            ValueError If the YouTube API key is not provided and not found in environment.
         """
         self.api_key = api_key or os.getenv("YOUTUBE_API_KEY")
         if not self.api_key:
@@ -48,7 +48,7 @@ class YouTubeClient:
             url: YouTube video URL.
             
         Returns:
-            Video ID if found, None otherwise.
+            Optional[str]
         """
         match = re.search(YTURL_REGEX, url)
         if match:
@@ -68,7 +68,7 @@ class CommentExtractor:
             youtube_client: YouTube API client. If None, a new client will be created.
         
         Raises:
-            ValueError: If the video ID cannot be extracted from the URL.
+            ValueError If the video ID cannot be extracted from the URL.
         """
         self.youtube_client = youtube_client or YouTubeClient()
         self.youtube = self.youtube_client.get_client()
@@ -86,7 +86,7 @@ class CommentExtractor:
             item: Comment thread item from YouTube API response.
             
         Returns:
-            List of reply text strings.
+            List[str]
         """
         if item['snippet']['totalReplyCount'] > 0 and 'replies' in item:
             return [reply['snippet']['textDisplay'] for reply in item['replies']['comments']]
@@ -100,7 +100,7 @@ class CommentExtractor:
             items: List of comment thread items from YouTube API response.
             
         Returns:
-            List of Comment objects.
+            List[Comment]
         """
         comments = []
         for item in items:
@@ -128,10 +128,10 @@ class CommentExtractor:
             next_page_token: Token for pagination, if provided search the next comments.
             
         Returns:
-            CommentExtractorResponse object containing comments and next_page_token.
+            CommentExtractorResponse
             
         Raises:
-            Exception: If the YouTube API request fails.
+            Exception If the YouTube API request fails.
         """
         try:
             response = self.youtube.commentThreads().list(

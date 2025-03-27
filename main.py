@@ -22,7 +22,6 @@ import dotenv
 import uvicorn
 
 from youtube_analyzer.analyzer.sentiment_analyzer import CommentAnalyzer
-from youtube_analyzer.api.app import create_app
 
 # Load environment variables
 dotenv.load_dotenv()
@@ -63,7 +62,7 @@ def run_server(port: int = 8000) -> None:
     """
     try:
         uvicorn.run(
-            create_app(), 
+            "youtube_analyzer.api.app:create_app", 
             host="0.0.0.0", 
             port=port,
             factory=True

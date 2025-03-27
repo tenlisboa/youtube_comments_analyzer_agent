@@ -9,7 +9,7 @@ from langchain_core.messages import SystemMessage, HumanMessage, BaseMessage
 from langgraph.graph import MessagesState, START, StateGraph
 from langgraph.prebuilt import tools_condition, ToolNode
 
-from youtube_analyzer.client.youtube_client import CommentExtractor
+from youtube_analyzer.client.youtube_client import CommentExtractor, YouTubeClient
 from youtube_analyzer.models.response import CommentExtractorResponse, AnalysisResult
 
 
@@ -101,7 +101,7 @@ class CommentAnalyzer:
 
         """
         # Extract video ID for reference
-        video_id = CommentExtractor.extract_video_id(video_url)
+        video_id = YouTubeClient.extract_video_id(video_url)
         
         # Run the analysis
         result = self.analyze(video_url)
@@ -112,16 +112,7 @@ class CommentAnalyzer:
         if not assistant_messages:
             raise ValueError("Analysis failed to produce results")
         
-        # Count the comments that were analyzed
-        # This is an approximation since we don't track exactly how many comments were processed
-        comment_count = 0
-        for msg in result["messages"]:
-            if msg.type == "tool" and hasattr(msg, "content") and isinstance(msg.content, dict):
-                if "comments" in msg.content:
-                    comment_count += len(msg.content["comments"])
-        
         return AnalysisResult(
             insights=assistant_messages[-1].content,
             video_id=video_id or "unknown",
-            comment_count=comment_count
         )

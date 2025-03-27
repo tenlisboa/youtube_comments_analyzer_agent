@@ -32,7 +32,6 @@ class AnalysisResult:
     """Result of the comment analysis."""
     insights: str
     video_id: str
-    comment_count: int
     
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -43,6 +42,5 @@ class AnalysisResult:
         """
         return {
             "insights": self.insights,
-            "video_id": self.video_id,
-            "comment_count": self.comment_count
+            "video_id": self.video_id
         }
